@@ -25,8 +25,8 @@ mcp = FastMCP(name="Search")
 FAKE_UA = UserAgent()
 
 # Register search tools from available backends
-from deeppresenter.tools.tavily import register_tools as _register_tavily
 from deeppresenter.tools.google import register_tools as _register_google
+from deeppresenter.tools.tavily import register_tools as _register_tavily
 
 _register_tavily(mcp)
 _register_google(mcp)
