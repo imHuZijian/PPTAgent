@@ -3,9 +3,7 @@ import os
 import re
 from io import BytesIO
 from pathlib import Path
-from typing import Any, Literal
 
-import aiohttp
 import httpx
 import markdownify
 from fake_useragent import UserAgent
@@ -15,125 +13,22 @@ from playwright.async_api import TimeoutError
 from trafilatura import extract
 
 from deeppresenter.utils.constants import (
-    MAX_RETRY_INTERVAL,
     MCP_CALL_TIMEOUT,
     RETRY_TIMES,
 )
-from deeppresenter.utils.log import debug, set_logger, warning
+from deeppresenter.utils.log import set_logger
 from deeppresenter.utils.webview import PlaywrightConverter
 
 mcp = FastMCP(name="Search")
 
-TAVILY_KEYS = [
-    i.strip() for i in os.getenv("TAVILY_API_KEY").split(",") if i.startswith("tvly")
-]
 FAKE_UA = UserAgent()
-TAVILY_API_URL = "https://api.tavily.com/search"
 
-debug(f"{len(TAVILY_KEYS)} TAVILY keys loaded")
+# Register search tools from available backends
+from deeppresenter.tools.tavily import register_tools as _register_tavily
+from deeppresenter.tools.google import register_tools as _register_google
 
-
-async def tavily_request(idx: int, params: dict) -> dict[str, Any]:
-    """Send Tavily API request"""
-    headers = {"Content-Type": "application/json", "User-Agent": FAKE_UA.random}
-
-    async with aiohttp.ClientSession() as session:
-        async with session.post(
-            TAVILY_API_URL, headers=headers, json=params
-        ) as response:
-            if response.status == 200:
-                return await response.json()
-            body = await response.text()
-            if response.status == 429:
-                await asyncio.sleep(MAX_RETRY_INTERVAL)
-            else:
-                await asyncio.sleep(RETRY_TIMES)
-            warning(f"TAVILY Error [{idx:02d}] [{response.status}] body={body}")
-            response.raise_for_status()
-        raise RuntimeError("TAVILY request failed after retries")
-
-
-async def search_with_fallback(**kwargs) -> dict[str, Any]:
-    last_error = None
-    for idx, api_key in enumerate(TAVILY_KEYS, start=1):
-        try:
-            params = {**kwargs, "api_key": api_key}
-            return await tavily_request(idx, params)
-        except Exception as e:
-            warning(f"TAVILY search error with key {api_key[:16]}...: {e}")
-            last_error = e
-
-    raise RuntimeError(
-        f"TAVILY search failed after {len(TAVILY_KEYS)} retries"
-    ) from last_error
-
-
-if len(TAVILY_KEYS):
-
-    @mcp.tool()
-    async def search_web(
-        query: str,
-        max_results: int = 3,
-        time_range: Literal["month", "year"] | None = None,
-    ) -> dict:
-        """
-        Search the web
-
-        Args:
-            query: Search keywords
-            max_results: Maximum number of search results, default 3
-            time_range: Time range filter for search results, can be "month", "year", or None
-
-        Returns:
-            dict: Dictionary containing search results
-        """
-        kwargs = {"query": query, "max_results": max_results, "include_images": False}
-        if time_range:
-            kwargs["time_range"] = time_range
-
-        result = await search_with_fallback(**kwargs)
-
-        results = [
-            {
-                "url": item["url"],
-                "content": item["content"],
-            }
-            for item in result.get("results", [])
-        ]
-
-        return {
-            "query": query,
-            "total_results": len(results),
-            "results": results,
-        }
-
-    @mcp.tool()
-    async def search_images(
-        query: str,
-    ) -> dict:
-        """
-        Search for web images
-        """
-        result = await search_with_fallback(
-            query=query,
-            max_results=4,
-            include_images=True,
-            include_image_descriptions=True,
-        )
-
-        images = [
-            {
-                "url": img["url"],
-                "description": img["description"],
-            }
-            for img in result.get("images", [])
-        ]
-
-        return {
-            "query": query,
-            "total_results": len(images),
-            "images": images,
-        }
+_register_tavily(mcp)
+_register_google(mcp)
 
 
 @mcp.tool()
