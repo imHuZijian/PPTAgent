@@ -221,6 +221,17 @@ def onboard():
             else:
                 raise ValueError("search server not found in mcp.json")
 
+        if Confirm.ask(
+            "Configure SerpAPI key for Google web search?", default=False
+        ):
+            serpapi_key = Prompt.ask("SerpAPI key", password=True)
+            for server in mcp_data:
+                if server.get("name") == "search":
+                    server["env"]["SERPAPI_KEY"] = serpapi_key
+                    break
+            else:
+                raise ValueError("search server not found in mcp.json")
+
         if Confirm.ask("Configure MinerU API key for PDF parsing?", default=False):
             mineru_key = Prompt.ask("MinerU API key", password=True)
             for server in mcp_data:
