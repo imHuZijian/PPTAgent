@@ -27,11 +27,7 @@ mcp = FastMCP(name="Search")
 FAKE_UA = UserAgent()
 
 # Google (SerpAPI)
-GOOGLE_KEYS = [
-    i.strip()
-    for i in os.getenv("SERPAPI_KEY", "").split(",")
-    if i.strip()
-]
+GOOGLE_KEYS = [i.strip() for i in os.getenv("SERPAPI_KEY", "").split(",") if i.strip()]
 SERPAPI_URL = "https://serpapi.com/search"
 
 # Tavily
@@ -48,6 +44,7 @@ debug(f"{len(TAVILY_KEYS)} TAVILY keys loaded")
 
 # ── Google helpers ─────────────────────────────────────────────────────────────
 
+
 async def _serpapi_request(params: dict[str, Any]) -> dict[str, Any]:
     params = {**params, "api_key": GOOGLE_KEYS[0]}
     async with aiohttp.ClientSession() as session:
@@ -61,6 +58,7 @@ async def _serpapi_request(params: dict[str, Any]) -> dict[str, Any]:
 
 
 # ── Tavily helpers ─────────────────────────────────────────────────────────────
+
 
 async def _tavily_request(idx: int, params: dict) -> dict[str, Any]:
     headers = {"Content-Type": "application/json", "User-Agent": FAKE_UA.random}
@@ -97,6 +95,7 @@ async def _tavily_search(**kwargs) -> dict[str, Any]:
 # ── Search tools (only one backend registered) ────────────────────────────────
 
 if len(GOOGLE_KEYS):
+
     @mcp.tool()
     async def search_web(
         query: str,
@@ -161,6 +160,7 @@ if len(GOOGLE_KEYS):
         return {"query": query, "total_results": len(images), "images": images}
 
 elif len(TAVILY_KEYS):
+
     @mcp.tool()
     async def search_web(
         query: str,
@@ -220,6 +220,7 @@ elif len(TAVILY_KEYS):
 
 
 # ── Other tools ───────────────────────────────────────────────────────────────
+
 
 @mcp.tool()
 async def fetch_url(url: str, body_only: bool = True) -> str:
