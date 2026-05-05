@@ -210,12 +210,24 @@ elif len(TAVILY_KEYS):
         """
         debug(f"search_images via Tavily query={query!r}")
         result = await _tavily_search(
+            query=query,
+            max_results=4,
+            include_images=True,
             include_image_descriptions=True,
         )
-        images = [
-            {"url": img["url"], "description": img["description"]}
-            for img in result.get("images", [])
-        ]
+        images = []
+        for img in result.get("images", [])[:4]:
+            if isinstance(img, str):
+                images.append({"url": img, "description": query})
+            elif isinstance(img, dict):
+                image_url = img.get("url") or img.get("image_url")
+                if image_url:
+                    images.append(
+                        {
+                            "url": image_url,
+                            "description": img.get("description") or img.get("title") or query,
+                        }
+                    )
         return {"query": query, "total_results": len(images), "images": images}
 
 
