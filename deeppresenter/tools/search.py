@@ -92,6 +92,21 @@ async def _tavily_search(**kwargs) -> dict[str, Any]:
     ) from last_error
 
 
+def _format_tavily_image(item: Any, query: str) -> dict[str, str] | None:
+    if isinstance(item, str):
+        return {"url": item, "description": query}
+    if not isinstance(item, dict):
+        return None
+
+    image_url = item.get("url") or item.get("image_url")
+    if not image_url:
+        return None
+    return {
+        "url": image_url,
+        "description": item.get("description") or item.get("title") or query,
+    }
+
+
 # ── Search tools (only one backend registered) ────────────────────────────────
 
 if len(GOOGLE_KEYS):
