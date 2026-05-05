@@ -225,7 +225,9 @@ elif len(TAVILY_KEYS):
                     images.append(
                         {
                             "url": image_url,
-                            "description": img.get("description") or img.get("title") or query,
+                            "description": img.get("description")
+                            or img.get("title")
+                            or query,
                         }
                     )
         return {"query": query, "total_results": len(images), "images": images}
