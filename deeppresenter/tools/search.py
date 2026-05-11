@@ -150,8 +150,11 @@ if len(GOOGLE_KEYS):
         params: dict[str, Any] = {"engine": "google_images", "q": query, "num": 4}
         result = await _serpapi_request(params)
         images = [
-            {"url": img["url"], "description": img["description"]}
-            for img in result.get("images", [])
+            {
+                "url": item["original"],
+                "description": item.get("title", query),
+            }
+            for item in result.get("images_results", [])[:4]
         ]
         return {"query": query, "total_results": len(images), "images": images}
 
@@ -211,21 +214,10 @@ elif len(TAVILY_KEYS):
             include_images=True,
             include_image_descriptions=True,
         )
-        images = []
-        for img in result.get("images", [])[:4]:
-            if isinstance(img, str):
-                images.append({"url": img, "description": query})
-            elif isinstance(img, dict):
-                image_url = img.get("url") or img.get("image_url")
-                if image_url:
-                    images.append(
-                        {
-                            "url": image_url,
-                            "description": img.get("description")
-                            or img.get("title")
-                            or query,
-                        }
-                    )
+        images = [
+            {"url": img["url"], "description": img["description"]}
+            for img in result.get("images", [])
+        ]
         return {"query": query, "total_results": len(images), "images": images}
 
 
