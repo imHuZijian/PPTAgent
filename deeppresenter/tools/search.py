@@ -92,21 +92,6 @@ async def _tavily_search(**kwargs) -> dict[str, Any]:
     ) from last_error
 
 
-def _format_tavily_image(item: Any, query: str) -> dict[str, str] | None:
-    if isinstance(item, str):
-        return {"url": item, "description": query}
-    if not isinstance(item, dict):
-        return None
-
-    image_url = item.get("url") or item.get("image_url")
-    if not image_url:
-        return None
-    return {
-        "url": image_url,
-        "description": item.get("description") or item.get("title") or query,
-    }
-
-
 # ── Search tools (only one backend registered) ────────────────────────────────
 
 if len(GOOGLE_KEYS):
@@ -165,12 +150,8 @@ if len(GOOGLE_KEYS):
         params: dict[str, Any] = {"engine": "google_images", "q": query, "num": 4}
         result = await _serpapi_request(params)
         images = [
-            {
-                "url": item["original"],
-                "thumbnail": item.get("thumbnail", ""),
-                "description": item.get("title", query),
-            }
-            for item in result.get("images_results", [])[:4]
+            {"url": img["url"], "description": img["description"]}
+            for img in result.get("images", [])
         ]
         return {"query": query, "total_results": len(images), "images": images}
 
