@@ -1,11 +1,10 @@
-
 <div align="right">
   <details>
     <summary >🌐 Language</summary>
     <div>
       <div align="center">
         <a href="https://openaitx.github.io/view.html?user=icip-cas&project=PPTAgent&lang=en">English</a>
-        | <a href="https://openaitx.github.io/view.html?user=icip-cas&project=PPTAgent&lang=zh-CN">简体中文</a>
+        | <a href="https://openaitx.github.io/view.html?user=icip-cas&project=PPTAgent&lang=zh-CN">简体中文</a> (<a href="https://translate.google.com/translate?sl=en&tl=zh-CN&u=https%3A%2F%2Fgithub.com%2Ficip-cas%2FPPTAgent">备用翻译</a>)
         | <a href="https://openaitx.github.io/view.html?user=icip-cas&project=PPTAgent&lang=zh-TW">繁體中文</a>
         | <a href="https://openaitx.github.io/view.html?user=icip-cas&project=PPTAgent&lang=ja">日本語</a>
         | <a href="https://openaitx.github.io/view.html?user=icip-cas&project=PPTAgent&lang=ko">한국어</a>
@@ -47,30 +46,77 @@
   </tr>
 </table>
 
-We **strongly recommend** deploying our fine-tuned model for the best experience with our agent project. According to our experiments, it **significantly outperforms existing open-source models**.
-
-| Format | HuggingFace | ModelScope |
-|--------|-------------|------------|
-| GGUF (Quantized) | [Forceless/DeepPresenter-9B-GGUF](https://huggingface.co/Forceless/DeepPresenter-9B-GGUF) | [forceless/DeepPresenter-9B-GGUF](https://modelscope.cn/models/forceless/DeepPresenter-9B-GGUF) |
-| Full Weights | [Forceless/DeepPresenter-9B](https://huggingface.co/Forceless/DeepPresenter-9B) | [forceless/DeepPresenter-9B](https://modelscope.cn/models/forceless/DeepPresenter-9B) |
+> [!TIP]
+> **PPTAgent Skill for Claude Code, Codex & OpenCode**
+>
+> Create, revise, and visually review editable PowerPoint decks with your coding agent.
+>
+> **[Install the Skill →](#install-skill)** · **[Use Atria Dawn Preview →](#quick-start)**
+>
+> **Free Token Plan:** [Discovery](https://discovery-home.intern-ai.org.cn/) · [Atria API](https://api.atria-asi.ai/)
+>
+> Multimodal models use `mode: multimodal` to review slides directly. Text-only models, including Atria, use `mode: text` with an external visual model. [Setup guide →](skills/pptagent/README.md#visual-review)
 
 ## 📅 News
 
+- **[2026/09]** 🚀 Introducing **Atria Dawn Preview**, a new agentic model jointly released by Shanghai AI Laboratory, Fudan University, the Institute of Software (Chinese Academy of Sciences), Renmin University of China, the Institute of Automation (Chinese Academy of Sciences), and East China Normal University. **Claim a generous free Token Plan:** [Discovery](https://discovery-home.intern-ai.org.cn/) · [Atria](https://api.atria-asi.ai/). [Skill configuration →](skills/pptagent/README.md#configuration)
+- **[2026/09]** 🧩 Released **[PPTAgent Skill](skills/pptagent/README.md)** for **Claude Code & Codex** — create, visually review, and export editable PowerPoint decks with your coding agent. [Get started →](skills/pptagent/README.md#quick-start)
 - **[2026/04]** 🎉 [DeepPresenter](https://arxiv.org/abs/2602.22839) accepted to **ACL 2026**!
 - **[2026/03]** 🤗 We released fine-tuned models and taskset on [Hugging Face](https://huggingface.co/collections/ICIP/deeppresenter).
 - **[2026/01]** 🆕 Freeform & template generation now support PPTX export and offline mode. Context management added to prevent context overflow.
 - **[2025/12]** 🔥 Released **DeepPresenter** codebase with major upgrades — Deep Research Integration, Free-Form Visual Design, Autonomous Asset Creation, Text-to-Image Generation, and an Agent Environment with sandbox & 20+ tools.
-- **[2025/09]** 🛠️ MCP server support added — see [MCP Server](PPTAgent/DOC.md#mcp-server-) for configuration details.
+- **[2025/09]** 🛠️ MCP server support added — see [MCP Server](pptagent/DOC.md#mcp-server-) for configuration details.
 - **[2025/08]** 🎉 [PPTAgent](https://arxiv.org/abs/2501.03936) accepted to **EMNLP 2025**!
 - **[2025/05]** ⭐ Reached **1,000 stars** on GitHub!
 - **[2025/01]** 🔓 Open-sourced the PPTAgent codebase.
 
+<a id="install-skill"></a>
+
+## Install PPTAgent Skill 🧩
+
+Use Claude Code, Codex, or OpenCode to author editable presentations. The skill
+handles rendering, visual review, PPTX export and delivery checks.
+
+Follow the [Skill installation guide](skills/pptagent/README.md#quick-start).
+Install the Python package from this checkout so the converter and research
+tools match the skill. OpenCode's visual and research MCP configuration is in
+the [OpenCode guide](skills/pptagent/references/opencode.md).
+
+<a id="quick-start"></a>
+
+## Create a presentation
+
+After registering the skill, open your client in a separate task folder:
+
+```text
+Use the pptagent skill to create a 6-slide, 16:9 presentation using the
+source files in this folder. Include an editable table and workflow diagram.
+Review the slides and exported PPTX, fix visible issues, and deliver
+answer.pptx only when finalize reports complete=true.
+```
+
+Image-capable hosts can inspect renders directly. Text-only hosts need an
+external visual model; see [configuration](skills/pptagent/README.md#configuration).
+Your task folder retains the PPTX, editable sources, previews and final report.
+
+<details>
+<summary><strong>Self-hosted setup · DeepPresenter-9B, CLI, Docker &amp; dependencies</strong></summary>
+
 ## Usage 📖
+
+### DeepPresenter-9B
+
+For self-hosted deployments, **DeepPresenter-9B** is our fine-tuned model for presentation generation. Choose quantized GGUF or full weights below.
+
+| Format           | HuggingFace                                                                              | ModelScope                                                                                     |
+| ---------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| GGUF (Quantized) | [Forceless/DeepPresenter-9B-GGUF](https://huggingface.co/Forceless/DeepPresenter-9B-GGUF) | [forceless/DeepPresenter-9B-GGUF](https://modelscope.cn/models/forceless/DeepPresenter-9B-GGUF) |
+| Full Weights     | [Forceless/DeepPresenter-9B](https://huggingface.co/Forceless/DeepPresenter-9B)           | [forceless/DeepPresenter-9B](https://modelscope.cn/models/forceless/DeepPresenter-9B)           |
 
 > [!IMPORTANT]
 > Windows is not supported. If you are on Windows, please use WSL.
 >
-> We strongly recommend starting with the CLI and minimum task to confirm dependencies and environment is configured correctly.
+> For CLI or server deployments, start with a minimal CLI task to confirm that dependencies and the environment are configured correctly.
 
 ### Configuration
 
@@ -85,10 +131,9 @@ cp deeppresenter/mcp.json.example deeppresenter/mcp.json
 
 The following services can noticeably improve generation quality, especially for research depth, PDF parsing, and visual asset creation:
 
-- **Tavily**: improves web search quality. Apply for an API key at [tavily.com](https://www.tavily.com/), then set `TAVILY_API_KEY` in [`deeppresenter/mcp.json`](deeppresenter/mcp.json).
-- **MinerU**: improves PDF parsing quality. You can either apply for an API key at [mineru.net](https://mineru.net/apiManage/docs) and set `MINERU_API_KEY` in [`deeppresenter/mcp.json`](deeppresenter/mcp.json), or deploy MinerU locally and set `MINERU_API_URL` instead.
-- **Text-to-image model**: improves image generation quality. Configure `t2i_model` in [`deeppresenter/config.yaml`](deeppresenter/config.yaml).
-
+- **Tavily**: improves web search quality. Apply for an API key at [tavily.com](https://www.tavily.com/), then set `TAVILY_API_KEY` in [`deeppresenter/mcp.json`](deeppresenter/mcp.json.example).
+- **MinerU**: improves PDF parsing quality. You can either apply for an API key at [mineru.net](https://mineru.net/apiManage/docs) and set `MINERU_API_KEY` in [`deeppresenter/mcp.json`](deeppresenter/mcp.json.example), or deploy MinerU locally and set `MINERU_API_URL` instead.
+- **Text-to-image model**: improves image generation quality. Configure `t2i_model` in [`deeppresenter/config.yaml`](deeppresenter/config.yaml.example).
 
 If you want a fully offline setup, deploy MinerU locally and set `offline_mode: true` in `deeppresenter/config.yaml` to avoid loading network-dependent tools such as web search.
 
@@ -121,8 +166,8 @@ uvx pptagent generate "Q4 Report" \
   -o report.pptx
 ```
 
-| Command             | Description                                       |
-| ------------------- | ------------------------------------------------- |
+| Command               | Description                                       |
+| --------------------- | ------------------------------------------------- |
 | `pptagent onboard`  | Interactive configuration wizard                  |
 | `pptagent generate` | Generate presentations                            |
 | `pptagent config`   | View current configuration                        |
@@ -133,9 +178,9 @@ uvx pptagent generate "Q4 Report" \
 
 DeepPresenter publishes two runtime images:
 
-| Local image name | Purpose | Docker Hub | 1ms.run mirror |
-| --- | --- | --- | --- |
-| `deeppresenter-host` | Host service for the web UI and orchestration runtime | [`forceless/deeppresenter-host`](https://hub.docker.com/r/forceless/deeppresenter-host) | [`docker.1ms.run/forceless/deeppresenter-host`](https://1ms.run/r/forceless/deeppresenter-host) |
+| Local image name          | Purpose                                                       | Docker Hub                                                                                     | 1ms.run mirror                                                                                         |
+| ------------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `deeppresenter-host`    | Host service for the web UI and orchestration runtime         | [`forceless/deeppresenter-host`](https://hub.docker.com/r/forceless/deeppresenter-host)       | [`docker.1ms.run/forceless/deeppresenter-host`](https://1ms.run/r/forceless/deeppresenter-host)       |
 | `deeppresenter-sandbox` | Sandbox image used by the runtime for isolated tool execution | [`forceless/deeppresenter-sandbox`](https://hub.docker.com/r/forceless/deeppresenter-sandbox) | [`docker.1ms.run/forceless/deeppresenter-sandbox`](https://1ms.run/r/forceless/deeppresenter-sandbox) |
 
 ### 2. Minimal Setup / Development: Build From Source
@@ -165,10 +210,11 @@ docker build -t deeppresenter-sandbox -f deeppresenter/docker/SandBox.Dockerfile
 docker build -t deeppresenter-host -f deeppresenter/docker/Host.Dockerfile .
 ```
 
-Start the app:
+Configure the CLI, then generate a presentation:
 
 ```bash
-python webui.py
+pptagent onboard
+pptagent generate "Create a project overview" --output overview.pptx
 ```
 
 ### 3. Server Deployment: Docker Compose
@@ -197,6 +243,8 @@ docker compose up -d
 ```
 
 The service exposes the web UI on `http://localhost:7861`.
+
+</details>
 
 ## Case Study 💡
 
@@ -324,17 +372,17 @@ The service exposes the web UI on `http://localhost:7861`.
 </tr>
 <tr>
     <td align="center" style="word-wrap: break-word; width: 120.0; height: 120.0">
-        <a href=https://github.com/Sadahlu>
-            <img src=https://avatars.githubusercontent.com/u/126563707?v=4 width="80;"  alt=Sadahlu/>
-            <br />
-            <sub style="font-size:14px"><b>Sadahlu</b></sub>
-        </a>
-    </td>
-    <td align="center" style="word-wrap: break-word; width: 120.0; height: 120.0">
         <a href=https://github.com/lnennnn>
             <img src=https://avatars.githubusercontent.com/u/124434018?v=4 width="80;"  alt=lnennnn/>
             <br />
             <sub style="font-size:14px"><b>lnennnn</b></sub>
+        </a>
+    </td>
+    <td align="center" style="word-wrap: break-word; width: 120.0; height: 120.0">
+        <a href=https://github.com/Sadahlu>
+            <img src=https://avatars.githubusercontent.com/u/126563707?v=4 width="80;"  alt=Sadahlu/>
+            <br />
+            <sub style="font-size:14px"><b>Sadahlu</b></sub>
         </a>
     </td>
     <td align="center" style="word-wrap: break-word; width: 120.0; height: 120.0">
@@ -440,6 +488,7 @@ The service exposes the web UI on `http://localhost:7861`.
 ## Citation 🙏
 
 If you find this project helpful, please use the following to cite it:
+
 ```bibtex
 @inproceedings{zheng-etal-2025-pptagent,
     title = "{PPTA}gent: Generating and Evaluating Presentations Beyond Text-to-Slides",

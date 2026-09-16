@@ -1,0 +1,10 @@
+mode: text
+visual:
+  # Confirm that your Duanyan account uses this API prefix.
+  base_url: https://discovery-api.intern-ai.org.cn/v1
+  # Example model ID; confirm availability in your account.
+  model: deepseek-v4-flash-vision
+  api_key_env: VISUAL_API_KEY
+  timeout_seconds: 300
+delivery:
+  mode: strict

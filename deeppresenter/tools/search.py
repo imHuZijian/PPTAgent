@@ -30,6 +30,10 @@ FAKE_UA = UserAgent()
 GOOGLE_KEYS = [i.strip() for i in os.getenv("SERPAPI_KEY", "").split(",") if i.strip()]
 SERPAPI_URL = "https://serpapi.com/search"
 
+# Serper is a separate provider from SerpAPI.
+SERPER_API_KEY = os.getenv("SERPER_API_KEY", "").strip()
+SERPER_API_URL = "https://google.serper.dev"
+
 # Tavily
 TAVILY_KEYS = [
     i.strip()
@@ -55,6 +59,21 @@ async def _serpapi_request(params: dict[str, Any]) -> dict[str, Any]:
             warning(f"SERPAPI Error [{response.status}] body={body}")
             response.raise_for_status()
     raise RuntimeError("SerpAPI request failed")
+
+
+async def _serper_request(endpoint: str, params: dict[str, Any]) -> dict[str, Any]:
+    async with (
+        aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(total=30), trust_env=True
+        ) as session,
+        session.post(
+            f"{SERPER_API_URL}/{endpoint}",
+            headers={"X-API-KEY": SERPER_API_KEY},
+            json={key: value for key, value in params.items() if key != "engine"},
+        ) as response,
+    ):
+        response.raise_for_status()
+        return await response.json()
 
 
 # ── Tavily helpers ─────────────────────────────────────────────────────────────
@@ -99,7 +118,7 @@ async def _tavily_search(**kwargs) -> dict[str, Any]:
 
 # ── Search tools (only one backend registered) ────────────────────────────────
 
-if len(GOOGLE_KEYS):
+if GOOGLE_KEYS or SERPER_API_KEY:
 
     @mcp.tool()
     async def search_web(
@@ -108,7 +127,7 @@ if len(GOOGLE_KEYS):
         time_range: Literal["month", "year"] | None = None,
     ) -> dict:
         """
-        Search the web via Google (SerpAPI)
+        Search the web via Google (SerpAPI or Serper)
 
         Args:
             query: Search keywords
@@ -121,14 +140,18 @@ if len(GOOGLE_KEYS):
                 - total_results: number of results returned
                 - results: list of dicts with title, url, displayed_link, content
         """
-        debug(f"search_web via SerpAPI query={query!r}")
+        debug(f"search_web via Google query={query!r}")
         params: dict[str, Any] = {"engine": "google", "q": query, "num": max_results}
         if time_range == "month":
             params["tbs"] = "qdr:m"
         elif time_range == "year":
             params["tbs"] = "qdr:y"
 
-        result = await _serpapi_request(params)
+        result = (
+            await _serpapi_request(params)
+            if GOOGLE_KEYS
+            else await _serper_request("search", params)
+        )
         results = [
             {
                 "title": item.get("title", ""),
@@ -136,14 +159,14 @@ if len(GOOGLE_KEYS):
                 "displayed_link": item.get("displayed_link", ""),
                 "content": item.get("snippet", ""),
             }
-            for item in result.get("organic_results", [])
+            for item in result.get("organic_results", result.get("organic", []))
         ]
         return {"query": query, "total_results": len(results), "results": results}
 
     @mcp.tool()
     async def search_images(query: str) -> dict:
         """
-        Search for web images via Google (SerpAPI)
+        Search for web images via Google (SerpAPI or Serper)
 
         Returns:
             dict: with fields:
@@ -151,15 +174,19 @@ if len(GOOGLE_KEYS):
                 - total_results: number of results returned
                 - images: list of dicts with url, thumbnail, description
         """
-        debug(f"search_images via SerpAPI query={query!r}")
+        debug(f"search_images via Google query={query!r}")
         params: dict[str, Any] = {"engine": "google_images", "q": query, "num": 4}
-        result = await _serpapi_request(params)
+        result = (
+            await _serpapi_request(params)
+            if GOOGLE_KEYS
+            else await _serper_request("images", params)
+        )
         images = [
             {
-                "url": item["original"],
+                "url": item["original"] if GOOGLE_KEYS else item["imageUrl"],
                 "description": item.get("title", query),
             }
-            for item in result.get("images_results", [])[:4]
+            for item in result.get("images_results", result.get("images", []))[:4]
         ]
         return {"query": query, "total_results": len(images), "images": images}
 

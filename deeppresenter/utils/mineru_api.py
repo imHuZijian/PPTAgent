@@ -12,7 +12,7 @@ async def parse_pdf_offline(pdf_path: str, output_path: str, url: str) -> None:
     os.makedirs(output_path, exist_ok=True)
     pdf_path_obj = Path(pdf_path)
 
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(trust_env=True) as session:
         form = aiohttp.FormData()
         form.add_field(
             "pdf",
@@ -30,7 +30,11 @@ async def parse_pdf_offline(pdf_path: str, output_path: str, url: str) -> None:
 
 
 async def parse_pdf_online(
-    pdf_path: str, output_path: str, token: str, model_version: str = "vlm"
+    pdf_path: str,
+    output_path: str,
+    token: str,
+    model_version: str = "vlm",
+    source_url: str | None = None,
 ) -> None:
     """Parse PDF using MinerU external API
 
@@ -39,20 +43,48 @@ async def parse_pdf_online(
         output_path: Output directory
         token: API Token
         model_version: Model version (vlm/pipeline)
+        source_url: Optional public URL of the same PDF for server-side fetching
     """
     os.makedirs(output_path, exist_ok=True)
     pdf_path = Path(pdf_path)
 
-    async with aiohttp.ClientSession() as session:
-        batch_id, upload_url, upload_headers = await _request_upload_url(
-            session, pdf_path.name, pdf_path.stem[:128], model_version, token
-        )
-
-        await _upload_file(session, upload_url, pdf_path, upload_headers)
+    async with aiohttp.ClientSession(trust_env=True) as session:
+        if source_url:
+            batch_id = await _request_parse_url(
+                session, source_url, pdf_path.stem[:128], model_version, token
+            )
+        else:
+            batch_id, upload_url, upload_headers = await _request_upload_url(
+                session, pdf_path.name, pdf_path.stem[:128], model_version, token
+            )
+            await _upload_file(session, upload_url, pdf_path, upload_headers)
 
         zip_url = await _poll_result(session, batch_id, token)
 
         await _download_and_extract(session, zip_url, output_path)
+
+
+async def _request_parse_url(
+    session: aiohttp.ClientSession,
+    source_url: str,
+    data_id: str,
+    model_version: str,
+    token: str,
+) -> str:
+    """Ask MinerU to fetch a public source PDF instead of uploading locally."""
+    async with session.post(
+        "https://mineru.net/api/v4/extract/task/batch",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "files": [{"url": source_url, "data_id": data_id}],
+            "model_version": model_version,
+        },
+    ) as response:
+        response.raise_for_status()
+        result = await response.json()
+        if result["code"] != 0:
+            raise RuntimeError(f"MinerU URL submission failed: {result.get('msg')}")
+        return result["data"]["batch_id"]
 
 
 async def _request_upload_url(

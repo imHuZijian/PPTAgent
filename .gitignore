@@ -2,6 +2,7 @@ __pycache__
 tmp
 build
 workspace
+/outputs/
 *ipynb
 .vscode
 oaib.txt
@@ -40,3 +41,8 @@ dist-ssr
 .superset
 !.vscode/extensions.json
 !.dockerignore
+
+# Local scratch work; long-lived experiments belong outside the checkout.
+/.local/
+.env.*
+!.env.example

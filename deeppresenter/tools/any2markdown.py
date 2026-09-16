@@ -35,16 +35,26 @@ if os.getenv("OFFLINE_MODE", False):
 
 
 @mcp.tool()
-async def convert_to_markdown(file_path: str, output_folder: str) -> dict:
+async def convert_to_markdown(
+    file_path: str, output_folder: str, source_url: str | None = None
+) -> dict:
     """Convert a file to markdown, it could accept pdf, docx, doc, etc.
     Args:
         file_path: The path of the file to be converted
         output_folder: The folder to save the converted markdown and images, should be empty or not exist
+        source_url: Optional public HTTPS URL of the same PDF. MinerU fetches it
+            directly when local upload is unavailable. Requires MINERU_API_KEY.
 
     Returns:
         The converted results, with file saved to the specified path
     """
 
+    if source_url and (
+        not file_path.lower().endswith(".pdf")
+        or not MINERU_API_KEY
+        or not source_url.startswith("https://")
+    ):
+        raise ValueError("source_url requires a PDF, hosted MinerU key, and HTTPS URL")
     output_path = Path(output_folder)
     output_path.mkdir(parents=True, exist_ok=True)
     assert len(list(output_path.iterdir())) == 0, (
@@ -56,7 +66,9 @@ async def convert_to_markdown(file_path: str, output_folder: str) -> dict:
 
     if file_path.lower().endswith(".pdf") and (MINERU_API_KEY or MINERU_API_URL):
         if MINERU_API_KEY:
-            await parse_pdf_online(file_path, str(output_path), MINERU_API_KEY)
+            await parse_pdf_online(
+                file_path, str(output_path), MINERU_API_KEY, source_url=source_url
+            )
         elif MINERU_API_URL:
             await parse_pdf_offline(file_path, str(output_path), MINERU_API_URL)
         for f in output_path.glob("*"):
